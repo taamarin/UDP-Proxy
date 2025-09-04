@@ -1,0 +1,123 @@
+name: Update UDP Proxy
+
+on:
+  push:
+    paths-ignore:
+      - "vidio.yaml"
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-proxy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: master   # pastikan branch udp
+
+      - name: Install yq (Go version)
+        run: |
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+          yq --version
+
+      - name: Generate vidio.yaml
+        run: |
+          yaml_file="udp.yaml"
+          output_file="vidio.yaml"
+
+          # Download file yaml
+          curl --progress-bar -L --insecure --user-agent Linux \
+            -o "$yaml_file" \
+            "https://info.free.jeelsboobz.art/Y47LFYv1Eb7AI/00000000-0000-0000-0000-000000000000/clashmeta/?asn=unknown#FREE%20UDP%20ONLY"
+
+          # Ambil daftar index proxy yg type trojan/vless/vmess
+          valid_indexes=$(yq -r '
+            .proxies
+            | to_entries
+            | map(select(.value.type == "trojan" or .value.type == "vless" or .value.type == "vmess"))
+            | .[].key
+          ' "$yaml_file")
+
+          # Masukkan ke array bash
+          mapfile -t arr <<< "$valid_indexes"
+          count=${#arr[@]}
+
+          if [ "$count" -lt 2 ]; then
+            echo "Proxy valid kurang dari 2, gagal generate"
+            exit 1
+          fi
+
+          # Pilih dua index acak dari daftar valid
+          i1=${arr[$((RANDOM % count))]}
+          i2=${arr[$((RANDOM % count))]}
+          while [ "$i1" -eq "$i2" ]; do
+            i2=${arr[$((RANDOM % count))]}
+          done
+
+          # Ambil 2 proxy random lalu ubah server + skip-cert-verify
+          yq ".proxies | [.[${i1}], .[${i2}]]
+              | map(.server = \"quiz.vidio.com\" 
+              | .[\"skip-cert-verify\"] = true)" "$yaml_file" \
+            | yq eval '{"proxies": .}' - > "$output_file"
+
+          echo "Proxy ke-$i1 dan ke-$i2 dipilih, hasil disimpan ke $output_file"
+
+      # - name: Generate vidio.yaml
+        # run: |
+          # yaml_file="udp.yaml"
+          # output_file="vidio.yaml"
+          # # Download file yaml
+          # curl --progress-bar -L --insecure --user-agent Linux \
+            # -o "$yaml_file" \
+            # "https://info.free.jeelsboobz.art/Y47LFYv1Eb7AI/00000000-0000-0000-0000-000000000000/clashmeta/?asn=unknown#FREE%20UDP%20ONLY"
+
+          # # Hitung jumlah proxy
+          # count=$(yq '.proxies | length' "$yaml_file")
+
+          # # Pilih index acak
+          # index=$((RANDOM % count))
+
+          # # Ambil satu proxy random, ubah server + skip-cert-verify, lalu simpan
+          # # yq ".proxies[$index] 
+              # # | .server = \"quiz.vidio.com\" 
+              # # | .\"skip-cert-verify\" = true" "$yaml_file" \
+            # # | yq eval '{"proxies": [.]}' - > "$output_file"
+
+          # i1=$((RANDOM % $(yq '.proxies | length' "$yaml_file")))
+          # i2=$((RANDOM % $(yq '.proxies | length' "$yaml_file")))
+          
+          # yq ".proxies | [.[${i1}], .[${i2}]]
+              # | map(.server = \"quiz.vidio.com\" 
+              # | .[\"skip-cert-verify\"] = true)" "$yaml_file" \
+            # | yq eval '{"proxies": .}' - > "$output_file"
+          # echo "Proxy ke-$index dipilih, hasil disimpan ke $output_file"
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add vidio.yaml
+          git commit -m "chore: update vidio.yaml ($(date -u +%Y-%m-%dT%H:%M:%SZ))" || echo "No changes to commit"
+          git push origin master --force
+
+      - name: upload Telegram
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHAT_ID: "-1001597117128"
+          THREAD_ID: "487822"
+        run: |
+          content=$(cat vidio.yaml)
+          caption="🥝Update UDP Proxy Vidio🥝 <pre>${content}</pre> link raw: https://raw.githubusercontent.com/taamarin/UDP-Proxy/refs/heads/master/vidio.yaml"
+
+          curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendDocument" \
+            -F chat_id="${CHAT_ID}" \
+            -F message_thread_id="${THREAD_ID}" \
+            -F document=@"vidio.yaml" \
+            -F caption="${caption}" \
+            -F parse_mode="HTML" >/dev/null 2>&1
