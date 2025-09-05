@@ -1,0 +1,91 @@
+proxies:
+  - name: "id1.jeelsboobz.art http WS direct vless § 8080 4"
+    type: vless
+    server: quiz.vidio.com
+    port: 8080
+    udp: true
+    alpn:
+      - http/1.1
+    skip-cert-verify: true
+    client-fingerprint: randomized
+    uuid: 00000000-0000-0000-0000-000000000000
+    servername: id1.jeelsboobz.art
+    tls: false
+    packet-encoding: xudp
+    network: ws
+    ws-opts:
+      path: /qGZGAPo0xY5Jzv3tf0
+      headers:
+        Host: id1.jeelsboobz.art
+  - name: "id1.jeelsboobz.art tls WS direct trojan § 443 4"
+    type: trojan
+    server: quiz.vidio.com
+    port: 443
+    udp: true
+    alpn:
+      - http/1.1
+    skip-cert-verify: true
+    client-fingerprint: randomized
+    password: 00000000-0000-0000-0000-000000000000
+    sni: id1.jeelsboobz.art
+    network: ws
+    ws-opts:
+      path: /IfSZyRWbqp3lhW1Y5Jzv3tf0
+      headers:
+        Host: id1.jeelsboobz.art
+  - name: "cdn.id1.jeelsboobz.art http WS CDN vmess § 8080 5"
+    type: vmess
+    server: quiz.vidio.com
+    port: 8080
+    udp: true
+    alpn:
+      - http/1.1
+    skip-cert-verify: true
+    client-fingerprint: randomized
+    uuid: 00000000-0000-0000-0000-000000000000
+    servername: cdn.id1.jeelsboobz.art
+    tls: false
+    packet-encoding: xudp
+    alterId: 0
+    cipher: auto
+    network: ws
+    ws-opts:
+      path: /62QPV66FiB8qy6LY5Jzv3tf0
+      headers:
+        Host: cdn.id1.jeelsboobz.art
+  - name: "cdn.id1.jeelsboobz.art tls WS CDN vless § 443 5"
+    type: vless
+    server: quiz.vidio.com
+    port: 443
+    udp: true
+    alpn:
+      - http/1.1
+    skip-cert-verify: true
+    client-fingerprint: randomized
+    uuid: 00000000-0000-0000-0000-000000000000
+    servername: cdn.id1.jeelsboobz.art
+    tls: true
+    packet-encoding: xudp
+    network: ws
+    ws-opts:
+      path: /qGZGAPo0xY5Jzv3tf0
+      headers:
+        Host: cdn.id1.jeelsboobz.art
+  - name: "cdn.id1.jeelsboobz.art http WS CDN vless § 8080 5"
+    type: vless
+    server: quiz.vidio.com
+    port: 8080
+    udp: true
+    alpn:
+      - http/1.1
+    skip-cert-verify: true
+    client-fingerprint: randomized
+    uuid: 00000000-0000-0000-0000-000000000000
+    servername: cdn.id1.jeelsboobz.art
+    tls: false
+    packet-encoding: xudp
+    network: ws
+    ws-opts:
+      path: /qGZGAPo0xY5Jzv3tf0
+      headers:
+        Host: cdn.id1.jeelsboobz.art
