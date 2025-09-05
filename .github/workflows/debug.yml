@@ -6,6 +6,7 @@ on:
   push:
     paths-ignore:
       - "vidio.yaml"
+      - "iflix.yaml"
     branches:
       - master
   workflow_dispatch:
@@ -16,6 +17,11 @@ permissions:
 jobs:
   update-proxy:
     runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 1
+      matrix:
+        target: [vidio, iflix]
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v5
@@ -28,104 +34,75 @@ jobs:
           sudo chmod +x /usr/local/bin/yq
           yq --version
 
-      - name: Generate vidio.yaml
+      - name: Generate ${{ matrix.target }}.yaml
         run: |
-          yaml_file="udp.yaml"
-          output_file="vidio.yaml"
-      
+          if [ "${{ matrix.target }}" = "vidio" ]; then
+            yaml_file="udp-vidio.yaml"
+            output_file="vidio.yaml"
+            filter_patch='map(.server = "quiz.vidio.com" | .["skip-cert-verify"]=true)'
+            yq_filter='.proxies | to_entries | map(select(
+              (.value.type == "trojan" or .value.type == "vless" or .value.type == "vmess")
+              and .value.network == "ws"
+            )) | .[].key'
+          else
+            yaml_file="udp-iflix.yaml"
+            output_file="iflix.yaml"
+            filter_patch='map(.sni="live.iflix.com" | .servername="live.iflix.com")'
+            yq_filter='.proxies | to_entries | map(select(
+              (.value.type == "trojan" or .value.type == "vless" or .value.type == "vmess")
+              and .value.network == "ws"
+              and .value.port == 443
+            )) | .[].key'
+          fi
+
           # Download file yaml
           curl --progress-bar -L --insecure --user-agent Linux \
             -o "$yaml_file" \
             "https://info.free.jeelsboobz.art/Y47LFYv1Eb7AI/00000000-0000-0000-0000-000000000000/clashmeta/?asn=unknown#FREE%20UDP%20ONLY"
-      
-          # Ambil daftar index proxy yg type trojan/vless/vmess
-          valid_indexes=$(yq -r '
-            .proxies
-            | to_entries
-            | map(select(
-                (.value.type == "trojan" or .value.type == "vless" or .value.type == "vmess")
-                and .value.network == "ws"
-              ))
-            | .[].key
-          ' "$yaml_file")
-          # valid_indexes=$(yq -r '
-            # .proxies
-            # | to_entries
-            # | map(select(.value.type == "trojan" or .value.type == "vless" or .value.type == "vmess"))
-            # | .[].key
-          # ' "$yaml_file")
-      
-          # Masukkan ke array bash
+
+          # Ambil daftar index proxy sesuai filter
+          valid_indexes=$(yq -r "$yq_filter" "$yaml_file")
           mapfile -t arr <<< "$valid_indexes"
           count=${#arr[@]}
-      
-          if [ "$count" -lt 5 ]; then
-            echo "Proxy valid kurang dari 5, gagal generate"
+
+          if [ "$count" -lt 1 ]; then
+            echo "Proxy valid kurang dari 1, gagal generate"
             exit 1
           fi
-      
-          # Pilih 5 index unik random
-          chosen=()
-          while [ "${#chosen[@]}" -lt 5 ]; do
-            r=${arr[$((RANDOM % count))]}
-            [[ " ${chosen[*]} " =~ " $r " ]] || chosen+=("$r")
-          done
-      
-          # Bangun filter yq untuk ambil 5 proxy
-          filter=".proxies | ["
-          for idx in "${chosen[@]}"; do
-            filter+=".[${idx}],"
-          done
-          filter="${filter%,}] | map(.server = \"quiz.vidio.com\" | .[\"skip-cert-verify\"] = true)"
-      
-          # Generate output
+
+          # Pilih 1 index random
+          r=${arr[$((RANDOM % count))]}
+          echo "Proxy index $r dipilih"
+
+          # Filter proxy dan patch field
+          filter=".proxies | [.[${r}]] | ${filter_patch}"
           yq "$filter" "$yaml_file" | yq eval '{"proxies": .}' - > "$output_file"
-      
-          echo "Proxy index ${chosen[*]} dipilih, hasil disimpan ke $output_file"
-
-      # - name: Generate vidio.yaml
-        # run: |
-          # yaml_file="udp.yaml"
-          # output_file="vidio.yaml"
-          # # Download file yaml
-          # curl --progress-bar -L --insecure --user-agent Linux \
-            # -o "$yaml_file" \
-            # "https://info.free.jeelsboobz.art/Y47LFYv1Eb7AI/00000000-0000-0000-0000-000000000000/clashmeta/?asn=unknown#FREE%20UDP%20ONLY"
-
-          # # Hitung jumlah proxy
-          # count=$(yq '.proxies | length' "$yaml_file")
-
-          # # Pilih index acak
-          # index=$((RANDOM % count))
-
-          # # Ambil satu proxy random, ubah server + skip-cert-verify, lalu simpan
-          # # yq ".proxies[$index] 
-              # # | .server = \"quiz.vidio.com\" 
-              # # | .\"skip-cert-verify\" = true" "$yaml_file" \
-            # # | yq eval '{"proxies": [.]}' - > "$output_file"
-
-          # echo "Proxy ke-$index dipilih, hasil disimpan ke $output_file"
 
       - name: Commit and push changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add vidio.yaml
-          git commit -m "chore: update vidio.yaml ($(date -u +%Y-%m-%dT%H:%M:%SZ))" || echo "No changes to commit"
-          git push origin master --force
+          git add ${{ matrix.target }}.yaml
+          git commit -m "chore: update ${{ matrix.target }} ($(date -u +%Y-%m-%dT%H:%M:%SZ))" || echo "No changes to commit"
+          git pull --rebase origin master
+          git push origin master
 
-      - name: upload Telegram
+      - name: Upload Telegram
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           CHAT_ID: "-1001597117128"
           THREAD_ID: "487822"
         run: |
-          content=$(cat vidio.yaml)
-          caption=$(printf "🥝Update UDP Proxy Vidio🥝\n\nlink raw: https://raw.githubusercontent.com/taamarin/UDP-Proxy/refs/heads/master/vidio.yaml")
-      
+          target_name="${{ matrix.target }}"
+          # Kapital huruf pertama
+          target_name="$(tr '[:lower:]' '[:upper:]' <<< ${target_name:0:1})${target_name:1}"
+
+          content=$(cat ${{ matrix.target }}.yaml)
+          caption="🥝 Update UDP Proxy ${target_name} 🥝 <pre>${content}</pre> link raw: https://raw.githubusercontent.com/taamarin/UDP-Proxy/refs/heads/master/${{ matrix.target }}.yaml"
+
           curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendDocument" \
             -F chat_id="${CHAT_ID}" \
             -F message_thread_id="${THREAD_ID}" \
-            -F document=@vidio.yaml \
+            -F document=@${{ matrix.target }}.yaml \
             -F caption="$caption" \
             -F parse_mode="HTML"
