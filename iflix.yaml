@@ -1,6 +1,6 @@
 proxies:
-  - name: "id1.jeelsboobz.art tls WS direct trojan § 443 4"
-    type: trojan
+  - name: "id1.jeelsboobz.art tls WS direct vmess § 443 4"
+    type: vmess
     server: id1.jeelsboobz.art
     port: 443
     udp: true
@@ -8,11 +8,15 @@ proxies:
       - http/1.1
     skip-cert-verify: false
     client-fingerprint: randomized
-    password: 00000000-0000-0000-0000-000000000000
-    sni: live.iflix.com
+    uuid: 00000000-0000-0000-0000-000000000000
+    servername: live.iflix.com
+    tls: true
+    packet-encoding: xudp
+    alterId: 0
+    cipher: auto
     network: ws
     ws-opts:
-      path: /IfSZyRWbqp3lhW1Y5Jzv3tf0
+      path: /62QPV66FiB8qy6LY5Jzv3tf0
       headers:
         Host: id1.jeelsboobz.art
-    servername: live.iflix.com
+    sni: live.iflix.com
