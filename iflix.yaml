@@ -1,6 +1,6 @@
 proxies:
-  - name: "cdn.id1.jeelsboobz.art tls WS CDN vless § 443 5"
-    type: vless
+  - name: "cdn.id1.jeelsboobz.art tls WS CDN vmess § 443 5"
+    type: vmess
     server: cdn.id1.jeelsboobz.art
     port: 443
     udp: true
@@ -12,9 +12,11 @@ proxies:
     servername: live.iflix.com
     tls: true
     packet-encoding: xudp
+    alterId: 0
+    cipher: auto
     network: ws
     ws-opts:
-      path: /qGZGAPo0xY5Jzv3tf0
+      path: /62QPV66FiB8qy6LY5Jzv3tf0
       headers:
         Host: cdn.id1.jeelsboobz.art
     sni: live.iflix.com
