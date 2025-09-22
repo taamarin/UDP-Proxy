@@ -1,8 +1,8 @@
 proxies:
-  - name: "cdn.id1.jeelsboobz.art http WS CDN vless § 80 5"
+  - name: "cdn.id1.jeelsboobz.art tls WS CDN vless § 443 5"
     type: vless
     server: quiz.vidio.com
-    port: 80
+    port: 443
     udp: true
     alpn:
       - http/1.1
@@ -10,7 +10,7 @@ proxies:
     client-fingerprint: randomized
     uuid: 00000000-0000-0000-0000-000000000000
     servername: cdn.id1.jeelsboobz.art
-    tls: false
+    tls: true
     packet-encoding: xudp
     network: ws
     ws-opts:
