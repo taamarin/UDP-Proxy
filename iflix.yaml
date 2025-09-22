@@ -1,6 +1,6 @@
 proxies:
-  - name: "id1.jeelsboobz.art tls WS direct vmess § 443 4"
-    type: vmess
+  - name: "id1.jeelsboobz.art tls WS direct vless § 443 4"
+    type: vless
     server: id1.jeelsboobz.art
     port: 443
     udp: true
@@ -12,11 +12,9 @@ proxies:
     servername: live.iflix.com
     tls: true
     packet-encoding: xudp
-    alterId: 0
-    cipher: auto
     network: ws
     ws-opts:
-      path: /62QPV66FiB8qy6LY5Jzv3tf0
+      path: /qGZGAPo0xY5Jzv3tf0
       headers:
         Host: id1.jeelsboobz.art
     sni: live.iflix.com
