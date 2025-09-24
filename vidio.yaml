@@ -1,6 +1,6 @@
 proxies:
-  - name: "id1.jeelsboobz.art http WS direct vmess § 8080 4"
-    type: vmess
+  - name: "cdn.id1.jeelsboobz.art http WS CDN vless § 8080 5"
+    type: vless
     server: quiz.vidio.com
     port: 8080
     udp: true
@@ -9,13 +9,11 @@ proxies:
     skip-cert-verify: true
     client-fingerprint: randomized
     uuid: 00000000-0000-0000-0000-000000000000
-    servername: id1.jeelsboobz.art
+    servername: cdn.id1.jeelsboobz.art
     tls: false
     packet-encoding: xudp
-    alterId: 0
-    cipher: auto
     network: ws
     ws-opts:
-      path: /62QPV66FiB8qy6LY5Jzv3tf0
+      path: /qGZGAPo0xY5Jzv3tf0
       headers:
-        Host: id1.jeelsboobz.art
+        Host: cdn.id1.jeelsboobz.art
